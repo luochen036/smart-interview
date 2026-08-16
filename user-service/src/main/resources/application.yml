@@ -1,0 +1,25 @@
+server:
+  port: 8081                       # 用户服务端口
+spring:
+  application:
+    name: user-service             # 注册到 Nacos 的名字
+  datasource:
+    url: jdbc:mysql://localhost:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: cl210613
+  jpa:
+    hibernate:
+      ddl-auto: update             # 自动建表，省得手写 SQL
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848   # Nacos 地址
+    sentinel:
+      transport:
+        dashboard: localhost:8080     # Sentinel 控制台
+        port: 8719
+  rabbitmq:
+    host: localhost                   # RabbitMQ 地址
+    port: 5672
+    username: guest
+    password: guest
