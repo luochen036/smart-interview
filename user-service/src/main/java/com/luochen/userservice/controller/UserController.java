@@ -1,7 +1,9 @@
+package com.luochen.userservice.controller;
+
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
-import com.smartinterview.entity.User;
-import com.smartinterview.repository.UserRepository;
+import com.luochen.userservice.entity.User;
+import com.luochen.userservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;

@@ -1,0 +1,69 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: smart_interview
+    ports:
+      - "3306:3306"
+
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    environment:
+      MODE: standalone
+    ports:
+      - "8848:8848"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management      # 带管理后台
+    ports:
+      - "5672:5672"                   # 消息端口
+      - "15672:15672"                 # 管理后台（guest/guest）
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "8081:8081"
+    environment:      # 用环境变量覆盖本地配置：服务名互访
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: host.docker.internal:8080
+      SPRING_RABBITMQ_HOST: rabbitmq
+
+  question-service:
+    build: ./question-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_DATA_REDIS_HOST: redis
+
+  ai-service:
+    build: ./ai-service
+    ports:
+      - "8000:8000"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      USER_SERVICE: http://user-service:8081
+    command: sh -c "python consumer.py & gunicorn ai_project.wsgi:application --bind 0.0.0.0:8000"
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "9000:9000"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://ai-service:8000   # 容器内改用服务名访问 ai-service
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"         # 浏览器打开 http://localhost:5173 就是完整前端

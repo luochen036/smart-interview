@@ -1,9 +1,11 @@
+package com.luochen.questionservice.controller;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.smartinterview.entity.Category;
-import com.smartinterview.entity.Question;
-import com.smartinterview.repository.CategoryRepository;
-import com.smartinterview.repository.QuestionRepository;
+import com.luochen.questionservice.entity.Category;
+import com.luochen.questionservice.entity.Question;
+import com.luochen.questionservice.repository.CategoryRepository;
+import com.luochen.questionservice.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;

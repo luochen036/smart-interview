@@ -1,5 +1,7 @@
-import com.smartinterview.entity.StudyRecord;
-import com.smartinterview.repository.StudyRecordRepository;
+package com.luochen.userservice.controller;
+
+import com.luochen.userservice.entity.StudyRecord;
+import com.luochen.userservice.repository.StudyRecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;

@@ -1,3 +1,5 @@
+package com.luochen.userservice.entity;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;

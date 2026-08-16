@@ -1,5 +1,7 @@
-import com.smartinterview.entity.TestRecord;
-import com.smartinterview.repository.TestRecordRepository;
+package com.luochen.userservice.controller;
+
+import com.luochen.userservice.entity.TestRecord;
+import com.luochen.userservice.repository.TestRecordRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

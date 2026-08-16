@@ -1,3 +1,5 @@
+package com.luochen.userservice.entity;
+
 import jakarta.persistence.*;
 import lombok.Data;
 // 用户实体类

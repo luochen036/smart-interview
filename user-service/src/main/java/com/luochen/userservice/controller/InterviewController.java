@@ -1,5 +1,7 @@
-import com.smartinterview.entity.InterviewRecord;
-import com.smartinterview.repository.InterviewRepository;
+package com.luochen.userservice.controller;
+
+import com.luochen.userservice.entity.InterviewRecord;
+import com.luochen.userservice.repository.InterviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;

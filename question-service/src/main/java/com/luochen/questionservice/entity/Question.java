@@ -1,3 +1,5 @@
+package com.luochen.questionservice.entity;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
