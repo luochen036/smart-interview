@@ -1,1 +1,38 @@
-
+server:
+  port: 9000
+spring:
+  application:
+    name: gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+    gateway:
+      globalcors:                  # 双保险（前端已用代理同源访问，可省略）
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+      routes:
+        # 用户/学习/测试 → Java 用户服务（lb:// = 问 Nacos 要地址）
+        - id: user-route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**, /api/interviews/**, /api/study/**, /api/tests/**
+          filters:
+            - StripPrefix=1        # 去掉最前面的 /api
+        # 题库 → Java 题库服务
+        - id: question-route
+          uri: lb://question-service
+          predicates:
+            - Path=/api/questions/**
+          filters:
+            - StripPrefix=1
+        # AI 相关 → Python 服务
+        - id: ai-route
+          uri: http://localhost:8000   # ⚠️ docker-compose 版改成 http://ai-service:8000
+          predicates:
+            - Path=/api/ai/**
+          filters:
+            - StripPrefix=1

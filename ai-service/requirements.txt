@@ -1,0 +1,5 @@
+django==4.2.10
+djangorestframework
+requests
+gunicorn
+pika       
