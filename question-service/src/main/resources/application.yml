@@ -4,7 +4,7 @@ spring:
   application:
     name: question-service
   datasource:
-    url: jdbc:mysql://localhost:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: root
   jpa:

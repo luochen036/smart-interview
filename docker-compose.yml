@@ -5,7 +5,12 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: smart_interview
     ports:
-      - "3306:3306"
+      - "3307:3306"   # ⚠️ 宿主机 3306 常被你本地 MySQL 占用，改用 3307；容器内服务仍走 mysql:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   nacos:
     image: nacos/nacos-server:v2.3.2
@@ -13,38 +18,96 @@ services:
       MODE: standalone
     ports:
       - "8848:8848"
+    healthcheck:
+      # Nacos 进程启动后仍需初始化一段时间，必须等 readiness 返回成功再启动 Java 服务。
+      test: ["CMD", "curl", "-fsS", "http://localhost:8848/nacos/v1/console/health/readiness"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   rabbitmq:
     image: rabbitmq:3-management      # 带管理后台
     ports:
       - "5672:5672"                   # 消息端口
       - "15672:15672"                 # 管理后台（guest/guest）
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 8s
+      timeout: 5s
+      retries: 20
 
   user-service:
     build: ./user-service
     ports:
       - "8081:8081"
     environment:      # 用环境变量覆盖本地配置：服务名互访
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
       SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: host.docker.internal:8080
       SPRING_RABBITMQ_HOST: rabbitmq
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      AUTH_SECRET: ${AUTH_SECRET:-smart-interview-dev-secret}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
 
   question-service:
     build: ./question-service
     ports:
       - "8082:8082"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
       SPRING_DATA_REDIS_HOST: redis
+      AUTH_SECRET: ${AUTH_SECRET:-smart-interview-dev-secret}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  tutorial-service:
+    build:
+      context: .
+      dockerfile: tutorial-service/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      TUTORIAL_CONTENT_DIRECTORY: /app/tutorials
+      AUTH_SECRET: ${AUTH_SECRET:-smart-interview-dev-secret}
+    volumes:
+      # 后台上传的 HTML 直接持久化到统一课件目录，重建容器不会丢失。
+      - ./tutorial-service/tutorials:/app/tutorials
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+    restart: unless-stopped
 
   ai-service:
     build: ./ai-service
@@ -54,6 +117,10 @@ services:
       RABBITMQ_HOST: rabbitmq
       USER_SERVICE: http://user-service:8081
     command: sh -c "python consumer.py & gunicorn ai_project.wsgi:application --bind 0.0.0.0:8000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
 
   gateway:
     build: ./gateway
@@ -61,9 +128,16 @@ services:
       - "9000:9000"
     environment:
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
-      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://ai-service:8000   # 容器内改用服务名访问 ai-service
+    depends_on:
+      nacos:
+        condition: service_healthy
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
     ports:
       - "5173:80"         # 浏览器打开 http://localhost:5173 就是完整前端
+    depends_on:
+      gateway:
+        condition: service_started
+    restart: unless-stopped

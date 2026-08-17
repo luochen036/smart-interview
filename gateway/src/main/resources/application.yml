@@ -14,25 +14,34 @@ spring:
             allowedOrigins: "*"
             allowedMethods: "*"
             allowedHeaders: "*"
-      routes:
-        # 用户/学习/测试 → Java 用户服务（lb:// = 问 Nacos 要地址）
-        - id: user-route
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**, /api/interviews/**, /api/study/**, /api/tests/**
-          filters:
-            - StripPrefix=1        # 去掉最前面的 /api
-        # 题库 → Java 题库服务
-        - id: question-route
-          uri: lb://question-service
-          predicates:
-            - Path=/api/questions/**
-          filters:
-            - StripPrefix=1
-        # AI 相关 → Python 服务
-        - id: ai-route
-          uri: http://localhost:8000   # ⚠️ docker-compose 版改成 http://ai-service:8000
-          predicates:
-            - Path=/api/ai/**
-          filters:
-            - StripPrefix=1
+      server:
+        webflux:
+          routes:                  # ⚠️ Gateway 4.x 前缀必须是 spring.cloud.gateway.server.webflux.routes
+            # 用户/学习/测试 → Java 用户服务（lb:// = 问 Nacos 要地址）
+            - id: user-route
+              uri: lb://user-service
+              predicates:
+                - Path=/api/users/**, /api/interviews/**, /api/study/**, /api/tests/**
+              filters:
+                - StripPrefix=1        # 去掉最前面的 /api
+            # 题库 → Java 题库服务
+            - id: question-route
+              uri: lb://question-service
+              predicates:
+                - Path=/api/questions/**
+              filters:
+                - StripPrefix=1
+            # 动画教程 → 独立教程服务
+            - id: tutorial-route
+              uri: lb://tutorial-service
+              predicates:
+                - Path=/api/tutorials/**
+              filters:
+                - StripPrefix=1
+            # AI 相关 → Python 服务（docker-compose 运行用服务名；本地直跑时改回 http://localhost:8000）
+            - id: ai-route
+              uri: http://ai-service:8000
+              predicates:
+                - Path=/api/ai/**
+              filters:
+                - StripPrefix=1

@@ -1,5 +1,6 @@
 package com.luochen.userservice.repository;
 
+import com.luochen.userservice.entity.StudyRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

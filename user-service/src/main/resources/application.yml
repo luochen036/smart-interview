@@ -4,9 +4,9 @@ spring:
   application:
     name: user-service             # 注册到 Nacos 的名字
   datasource:
-    url: jdbc:mysql://localhost:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: cl210613
+    password: root
   jpa:
     hibernate:
       ddl-auto: update             # 自动建表，省得手写 SQL
@@ -23,3 +23,8 @@ spring:
     port: 5672
     username: guest
     password: guest
+
+app:
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin123}
