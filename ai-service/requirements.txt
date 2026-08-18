@@ -2,4 +2,6 @@ django==4.2.10
 djangorestframework
 requests
 gunicorn
-pika       
+pika
+openai
+python-dotenv

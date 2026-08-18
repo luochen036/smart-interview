@@ -116,6 +116,14 @@ services:
     environment:
       RABBITMQ_HOST: rabbitmq
       USER_SERVICE: http://user-service:8081
+      # 配置真实 AI：在 .env 里设置 DASHSCOPE_API_KEY（通义千问）；
+      # 也可用 AI_BASE_URL/AI_MODEL 指向任意 OpenAI 兼容服务（见 .env.example）。
+      # 不配或调用失败时，接口自动返回本地规则结果，并在响应 aiNote 中说明原因。
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      QWEN_MODEL: ${QWEN_MODEL:-qwen3.7-flash-2026-07-15}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
     command: sh -c "python consumer.py & gunicorn ai_project.wsgi:application --bind 0.0.0.0:8000"
     depends_on:
       rabbitmq:

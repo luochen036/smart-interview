@@ -26,13 +26,13 @@ public class QuestionController {
             return questionRepo.findAll();
         }
         String key = "questions:" + category;          // 缓存键
-        String cached = redis.opsForValue().get(key);  // ① 先问 Redis
+        String cached = redis.opsForValue().get(key);  // 先问 Redis
         if (cached != null) {
             return objectMapper.readValue(cached, new TypeReference<List<Question>>() {});
         }
-        List<Question> qs = questionRepo.findByCategory(category);   // ② 没缓存就查 MySQL
+        List<Question> qs = questionRepo.findByCategory(category);   // 没缓存就查 MySQL
         redis.opsForValue().set(key, objectMapper.writeValueAsString(qs),
-                Duration.ofMinutes(10));              // ③ 写回 Redis
+                Duration.ofMinutes(10));              // 写回 Redis
         return qs;
     }
 

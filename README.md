@@ -135,7 +135,20 @@ npm install
 npm run dev
 ```
 
-如需调用真实通义千问模型，请为 AI 服务配置 `DASHSCOPE_API_KEY`；未配置时项目仍可完整演示。
+### 配置真实 AI（可选）
+
+AI 服务默认调用通义千问（DashScope 的 OpenAI 兼容接口）。未配置或调用失败时，接口自动返回本地规则结果，并在响应的 `aiNote` 字段和容器日志中说明原因。
+
+- **Docker Compose 方式**：在项目根目录复制 `.env.example` 为 `.env`，填入你自己的 `DASHSCOPE_API_KEY`（在阿里云百炼控制台创建；免费额度用尽后接口会返回 403，此时也会走本地兜底）。
+- **本地开发方式**：编辑 `ai-service/.env`（服务启动时自动加载，无需手动 `set`；该文件已被 `.gitignore` 忽略），或启动前设置环境变量 `DASHSCOPE_API_KEY`。
+- **使用其他 OpenAI 兼容服务**：设置 `AI_BASE_URL`（完整 chat/completions 地址，优先级高于 DashScope）和 `AI_MODEL`，例如 DeepSeek 或本地 Ollama，详见 `.env.example`。
+
+```bash
+# 以 Docker Compose 为例
+cp .env.example .env
+# 编辑 .env，填入 DASHSCOPE_API_KEY=sk-xxxx（或 AI_BASE_URL/AI_MODEL）
+docker compose up --build
+```
 
 ## 核心接口
 

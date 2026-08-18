@@ -7,6 +7,8 @@ import requests
 
 RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST", "localhost")
 USER_SERVICE = os.environ.get("USER_SERVICE", "http://localhost:8081")
+# 消费者与 gunicorn 同容器时默认走 localhost；独立部署时用 AI_SERVICE 覆盖。
+AI_SERVICE = os.environ.get("AI_SERVICE", "http://localhost:8000")
 EXCHANGE = "test.exchange"
 QUEUE = "test.submitted"
 
@@ -24,7 +26,7 @@ def generate_report(test_id: int) -> None:
     ]
 
     report_response = requests.post(
-        "http://localhost:8000/ai/test-report",
+        f"{AI_SERVICE}/ai/test-report",
         json={"pairs": pairs},
         timeout=90,
     )
