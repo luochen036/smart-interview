@@ -56,14 +56,7 @@ Spring Cloud Gateway（9000）
 | 教程元数据 CRUD 与发布管理 |  | ✓ |
 | 学习、测试、面试记录管理 |  | ✓ |
 
-首次启动会在用户表为空对应账号不存在时创建演示管理员：
-
-```text
-用户名：admin
-密码：admin123
-```
-
-生产部署请通过 `ADMIN_USERNAME`、`ADMIN_PASSWORD` 环境变量覆盖默认值。
+首次启动会在对应账号不存在时创建管理员，账号由 `ADMIN_USERNAME` 指定（默认 `admin`），密码必须通过 `ADMIN_PASSWORD` 配置。
 
 ## 目录结构
 
@@ -86,6 +79,8 @@ smart-interview/
 
 环境要求：Docker Desktop / Docker Engine，Docker Compose v2。
 
+先复制根目录 `.env.example` 为 `.env`，填写数据库、管理员、RabbitMQ 密码以及 `AUTH_SECRET`、`DJANGO_SECRET_KEY`，再启动服务。两个密钥应分别生成，可使用 `python -c "import secrets; print(secrets.token_urlsafe(48))"`。
+
 ```bash
 docker compose up --build
 ```
@@ -95,7 +90,7 @@ docker compose up --build
 - 前端：<http://localhost:5173>
 - API 网关：<http://localhost:9000>
 - Nacos：<http://localhost:8848/nacos>
-- RabbitMQ 管理台：<http://localhost:15672>（guest / guest）
+- RabbitMQ 管理台：<http://localhost:15672>（使用 `.env` 中配置的账号和密码）
 
 停止服务：
 
@@ -106,6 +101,10 @@ docker compose down
 ### 方式二：本地开发
 
 先启动 MySQL、Redis、RabbitMQ 和 Nacos，并确认各服务 `application.yml` 中的连接信息正确。
+
+本地 Java 服务启动前，需在终端或 IDE 的进程环境中设置 `.env.example` 列出的必填变量；Spring Boot 不会自动加载 `.env`。Django 和 Python 消费者会读取 `ai-service/.env` 或根目录 `.env`，已有进程环境变量优先。
+
+`.env`、`.env.*`、本地私有配置、私钥、数据库文件、备份和日志已加入根目录 `.gitignore`；只提交不含真实凭据的 `.env.example`。共享配置使用环境变量引用，不要在源码、文档或模板中填写真实密钥。Git 忽略规则不会清除历史提交，曾提交过的有效凭据应更换。
 
 ```bash
 # 用户服务

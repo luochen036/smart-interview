@@ -2,12 +2,12 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
       MYSQL_DATABASE: smart_interview
     ports:
       - "3307:3306"   # ⚠️ 宿主机 3306 常被你本地 MySQL 占用，改用 3307；容器内服务仍走 mysql:3306
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h localhost"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -37,9 +37,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management      # 带管理后台
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?Set RABBITMQ_USERNAME in .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env}
     ports:
       - "5672:5672"                   # 消息端口
-      - "15672:15672"                 # 管理后台（guest/guest）
+      - "15672:15672"                 # 管理后台
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 8s
@@ -52,13 +55,15 @@ services:
       - "8081:8081"
     environment:      # 用环境变量覆盖本地配置：服务名互访
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
       SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: host.docker.internal:8080
       SPRING_RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?Set RABBITMQ_USERNAME in .env}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
-      AUTH_SECRET: ${AUTH_SECRET:-smart-interview-dev-secret}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
     depends_on:
       mysql:
         condition: service_healthy
@@ -74,10 +79,10 @@ services:
       - "8082:8082"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
       SPRING_DATA_REDIS_HOST: redis
-      AUTH_SECRET: ${AUTH_SECRET:-smart-interview-dev-secret}
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
     depends_on:
       mysql:
         condition: service_healthy
@@ -95,10 +100,10 @@ services:
       - "8083:8083"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_interview?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
       SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
       TUTORIAL_CONTENT_DIRECTORY: /app/tutorials
-      AUTH_SECRET: ${AUTH_SECRET:-smart-interview-dev-secret}
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
     volumes:
       # 后台上传的 HTML 直接持久化到统一课件目录，重建容器不会丢失。
       - ./tutorial-service/tutorials:/app/tutorials
@@ -115,6 +120,9 @@ services:
       - "8000:8000"
     environment:
       RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?Set RABBITMQ_USERNAME in .env}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
       USER_SERVICE: http://user-service:8081
       # 配置真实 AI：在 .env 里设置 DASHSCOPE_API_KEY（通义千问）；
       # 也可用 AI_BASE_URL/AI_MODEL 指向任意 OpenAI 兼容服务（见 .env.example）。

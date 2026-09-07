@@ -1,0 +1,17 @@
+.env
+.env.*
+**/.env
+**/.env.*
+**/application-local.*
+**/application-secrets.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/secrets
+**/credentials
+target
+*.log
+.idea

@@ -4,6 +4,11 @@ import time
 
 import pika
 import requests
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent / '.env')
+load_dotenv(Path(__file__).resolve().parent.parent / '.env')
 
 RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST", "localhost")
 USER_SERVICE = os.environ.get("USER_SERVICE", "http://localhost:8081")
@@ -65,6 +70,10 @@ def consume_forever() -> None:
             connection = pika.BlockingConnection(
                 pika.ConnectionParameters(
                     host=RABBITMQ_HOST,
+                    credentials=pika.PlainCredentials(
+                        os.environ['RABBITMQ_USERNAME'],
+                        os.environ['RABBITMQ_PASSWORD'],
+                    ),
                     heartbeat=60,
                     blocked_connection_timeout=30,
                     connection_attempts=5,

@@ -1,0 +1,17 @@
+.env
+.env.*
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/secrets
+**/credentials
+.npmrc
+node_modules
+dist
+*.log
+.idea
